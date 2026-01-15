@@ -110,8 +110,15 @@ export const handler = async (
     const outputTokens = responseBody.usage?.output_tokens || 0;
     const totalTokens = inputTokens + outputTokens;
 
-    // Update user's token usage
-    const updatedUser = await incrementTokenUsage(userId, totalTokens);
+    // Calculate cost based on AWS Bedrock pricing for Claude 3.5 Sonnet
+    // Input: $0.003 per 1,000 tokens = $0.000003 per token
+    // Output: $0.015 per 1,000 tokens = $0.000015 per token
+    const inputCost = (inputTokens / 1000) * 0.003;
+    const outputCost = (outputTokens / 1000) * 0.015;
+    const totalCost = inputCost + outputCost;
+
+    // Update user's token usage and cost
+    const updatedUser = await incrementTokenUsage(userId, totalTokens, totalCost);
     const newRemainingTokens = updatedUser.tokenLimit - updatedUser.tokenUsage;
 
     return {
@@ -120,7 +127,14 @@ export const handler = async (
       body: JSON.stringify({
         response: responseBody.content[0].text,
         tokensConsumed: totalTokens,
-        remainingTokens: Math.max(0, newRemainingTokens)
+        inputTokens,
+        outputTokens,
+        remainingTokens: Math.max(0, newRemainingTokens),
+        cost: {
+          inputCost: parseFloat(inputCost.toFixed(6)),
+          outputCost: parseFloat(outputCost.toFixed(6)),
+          totalCost: parseFloat(totalCost.toFixed(6))
+        }
       })
     };
   } catch (error: any) {

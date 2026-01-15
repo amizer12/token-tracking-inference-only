@@ -2,6 +2,7 @@ export interface User {
   userId: string;
   tokenLimit: number;
   tokenUsage: number;
+  totalCost: number; // Total inference cost in USD
   lastUpdated: string;
 }
 

@@ -1,41 +1,16 @@
-import { useState, useEffect } from 'react';
-import { invokeModel, listAllUsers } from '../utils/api';
+import { useState } from 'react';
+import { invokeModel } from '../utils/api';
 import { ModelResponse } from '../types';
 
 interface ModelInteractionProps {
   userId: string;
-  onUserChange?: (userId: string) => void;
 }
 
-export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId: initialUserId, onUserChange }) => {
-  const [selectedUserId, setSelectedUserId] = useState(initialUserId);
-  const [availableUsers, setAvailableUsers] = useState<Array<{ userId: string; tokenLimit: number; tokenUsage: number }>>([]);
+export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId }) => {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState<ModelResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const data = await listAllUsers();
-      setAvailableUsers(data.users || []);
-    } catch (err) {
-      console.error('Failed to fetch users:', err);
-    }
-  };
-
-  const handleUserChange = (newUserId: string) => {
-    setSelectedUserId(newUserId);
-    if (onUserChange) {
-      onUserChange(newUserId);
-    }
-    setResponse(null);
-    setError(null);
-  };
 
   const handleSubmit = async () => {
     if (!prompt.trim()) {
@@ -46,7 +21,7 @@ export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId: init
     try {
       setLoading(true);
       setError(null);
-      const result = await invokeModel(selectedUserId, prompt);
+      const result = await invokeModel(userId, prompt);
       setResponse(result);
     } catch (err: any) {
       setError(err.message || 'Failed to invoke model');
@@ -62,55 +37,25 @@ export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId: init
     }
   };
 
-  const selectedUser = availableUsers.find(u => u.userId === selectedUserId);
-  const remainingTokens = selectedUser ? selectedUser.tokenLimit - selectedUser.tokenUsage : 0;
-
   return (
     <div className="space-y-6">
-      {/* Header with User Selector */}
+      {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Model Interaction</h1>
-            <p className="text-sm text-gray-500 mt-1">Submit prompts to Claude Sonnet 4.5 and track token usage</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Submit prompts to Claude Sonnet 4.5 and track token usage
+            </p>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Select User:</label>
-            <select
-              value={selectedUserId}
-              onChange={(e) => handleUserChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            >
-              {availableUsers.map((user) => (
-                <option key={user.userId} value={user.userId}>
-                  {user.userId} ({(user.tokenLimit - user.tokenUsage).toLocaleString()} tokens left)
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {selectedUser && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Token Limit:</span>
-                <span className="ml-2 font-semibold text-gray-900">{selectedUser.tokenLimit.toLocaleString()}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Used:</span>
-                <span className="ml-2 font-semibold text-gray-900">{selectedUser.tokenUsage.toLocaleString()}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Remaining:</span>
-                <span className={`ml-2 font-semibold ${remainingTokens < 1000 ? 'text-red-600' : remainingTokens < 10000 ? 'text-yellow-600' : 'text-green-600'}`}>
-                  {remainingTokens.toLocaleString()}
-                </span>
-              </div>
+          <div className="text-right">
+            <div className="text-xs text-gray-500 uppercase font-medium mb-1">Current User</div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm font-semibold text-blue-900">{userId}</span>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Prompt Input */}
@@ -174,7 +119,7 @@ export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId: init
           {/* Token Usage Stats */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Token Usage</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Token Usage & Cost</h3>
             </div>
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -190,11 +135,61 @@ export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId: init
               <tbody className="bg-white divide-y divide-gray-200">
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    Tokens Consumed (This Request)
+                    Input Tokens
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      {response.inputTokens.toLocaleString()}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Output Tokens
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                      {response.outputTokens.toLocaleString()}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Total Tokens Consumed
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
                       {response.tokensConsumed.toLocaleString()}
+                    </span>
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Input Cost ($0.003 / 1K tokens)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      ${response.cost.inputCost.toFixed(6)}
+                    </span>
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Output Cost ($0.015 / 1K tokens)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      ${response.cost.outputCost.toFixed(6)}
+                    </span>
+                  </td>
+                </tr>
+                <tr className="bg-green-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                    Total Cost (This Request)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-900">
+                      ${response.cost.totalCost.toFixed(6)}
                     </span>
                   </td>
                 </tr>
@@ -227,6 +222,7 @@ export const ModelInteraction: React.FC<ModelInteractionProps> = ({ userId: init
             <li>Click "Submit Prompt" or press Cmd/Ctrl + Enter to send</li>
             <li>Token usage will be tracked and displayed after each request</li>
             <li>Your remaining token balance will update automatically</li>
+            <li>Switch users using the dropdown in the top-right navigation</li>
           </ul>
         </div>
       )}

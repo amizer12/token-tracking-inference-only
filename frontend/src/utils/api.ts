@@ -104,3 +104,15 @@ export async function invokeModel(
 
   return handleResponse(response);
 }
+
+export async function deleteUser(userId: string): Promise<any> {
+  const response = await fetchWithRetry(
+    `${API_BASE_URL}/users/${userId}`,
+    {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+
+  return handleResponse(response);
+}

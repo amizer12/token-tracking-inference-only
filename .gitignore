@@ -31,7 +31,7 @@ npm-debug.log*
 # Testing
 coverage/
 .nyc_output/
-
+.kiro/
 # CDK
 cdk.out/
 .cdk.staging/

@@ -104,9 +104,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="text-sm font-medium text-gray-500 mb-1">Usage Rate</div>
-          <div className="text-3xl font-bold text-gray-900">{user.percentageUsed}%</div>
-          <div className="text-xs text-gray-500 mt-1">of total limit</div>
+          <div className="text-sm font-medium text-gray-500 mb-1">Total Cost</div>
+          <div className="text-3xl font-bold text-green-700">${(user.totalCost || 0).toFixed(4)}</div>
+          <div className="text-xs text-gray-500 mt-1">inference cost (USD)</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -196,6 +196,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
                   'bg-green-100 text-green-800'
                 }`}>
                   {user.percentageUsed}%
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                Total Inference Cost
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  ${(user.totalCost || 0).toFixed(6)} USD
                 </span>
               </td>
             </tr>

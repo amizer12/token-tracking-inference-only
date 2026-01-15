@@ -80,6 +80,14 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(60)
     });
 
+    const deleteUserFn = new lambda.Function(this, 'DeleteUserFunction', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'lambda/deleteUser.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
+      environment: lambdaEnvironment,
+      timeout: cdk.Duration.seconds(30)
+    });
+
     // Grant DynamoDB permissions
     tokenUsageTable.grantReadWriteData(createUserFn);
     tokenUsageTable.grantReadWriteData(getUserUsageFn);
@@ -87,6 +95,7 @@ export class TokenUsageTrackerStack extends cdk.Stack {
     tokenUsageTable.grantReadWriteData(recordTokenUsageFn);
     tokenUsageTable.grantReadData(listAllUsersFn);
     tokenUsageTable.grantReadWriteData(invokeModelFn);
+    tokenUsageTable.grantWriteData(deleteUserFn);
 
     // Grant Bedrock permissions to invokeModel function
     invokeModelFn.addToRolePolicy(new iam.PolicyStatement({
@@ -112,6 +121,7 @@ export class TokenUsageTrackerStack extends cdk.Stack {
 
     const user = users.addResource('{userId}');
     user.addMethod('GET', new apigateway.LambdaIntegration(getUserUsageFn));
+    user.addMethod('DELETE', new apigateway.LambdaIntegration(deleteUserFn));
 
     const limit = user.addResource('limit');
     limit.addMethod('PUT', new apigateway.LambdaIntegration(updateTokenLimitFn));

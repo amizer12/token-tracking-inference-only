@@ -102,20 +102,22 @@ export async function updateTokenLimit(
 }
 
 /**
- * Atomically increment token usage
+ * Atomically increment token usage and cost
  */
 export async function incrementTokenUsage(
   userId: string,
-  tokensConsumed: number
+  tokensConsumed: number,
+  cost: number = 0
 ): Promise<User> {
   try {
     const params: UpdateCommandInput = {
       TableName: TABLE_NAME,
       Key: { userId },
       UpdateExpression:
-        'ADD tokenUsage :tokens SET lastUpdated = :timestamp',
+        'ADD tokenUsage :tokens, totalCost :cost SET lastUpdated = :timestamp',
       ExpressionAttributeValues: {
         ':tokens': tokensConsumed,
+        ':cost': cost,
         ':timestamp': new Date().toISOString()
       },
       ConditionExpression: 'attribute_exists(userId)',

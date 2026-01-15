@@ -59,6 +59,7 @@ export const handler = async (
       userId: request.userId,
       tokenLimit: request.tokenLimit,
       tokenUsage: 0,
+      totalCost: 0,
       lastUpdated: new Date().toISOString()
     };
 

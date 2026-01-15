@@ -12,7 +12,8 @@ export const handler = async (
       ...user,
       percentageUsed: user.tokenLimit > 0 
         ? Math.round((user.tokenUsage / user.tokenLimit) * 100 * 100) / 100
-        : 0
+        : 0,
+      totalCost: user.totalCost || 0 // Ensure totalCost is always present
     }));
 
     return {
