@@ -25,8 +25,6 @@ This system provides real-time monitoring and management of token consumption fo
 
 ![Token Usage Tracker Architecture](./docs/architecture.drawio.png)
 
-> **Note**: The architecture diagram has been updated to include the DELETE endpoint. To regenerate the PNG, open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net/) and export as PNG.
-
 ## API Endpoints
 
 ### User Management
