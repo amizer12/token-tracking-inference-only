@@ -11,13 +11,19 @@ interface UserData {
   lastUpdated: string;
 }
 
-export const UserList: React.FC = () => {
+interface UserListProps {
+  onUserListChange?: () => void;
+}
+
+export const UserList: React.FC<UserListProps> = ({ onUserListChange }) => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'usage' | 'limit' | 'percentage'>('usage');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [showApiModal, setShowApiModal] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -25,6 +31,11 @@ export const UserList: React.FC = () => {
       const data = await listAllUsers();
       setUsers(data.users || []);
       setError(null);
+      
+      // Notify parent component that user list changed
+      if (onUserListChange) {
+        onUserListChange();
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch users');
     } finally {
@@ -33,9 +44,8 @@ export const UserList: React.FC = () => {
   };
 
   useEffect(() => {
+    // Fetch users only on initial mount
     fetchUsers();
-    const interval = setInterval(fetchUsers, 10000); // Refresh every 10 seconds
-    return () => clearInterval(interval);
   }, []);
 
   const handleSort = (field: 'usage' | 'limit' | 'percentage') => {
@@ -55,7 +65,7 @@ export const UserList: React.FC = () => {
     try {
       setDeletingUserId(userId);
       await deleteUser(userId);
-      await fetchUsers(); // Refresh the list
+      await fetchUsers(); // This will trigger onUserListChange callback
     } catch (err: any) {
       alert(`Failed to delete user: ${err.message}`);
     } finally {
@@ -198,6 +208,138 @@ export const UserList: React.FC = () => {
       {/* Create User Form */}
       <CreateUser onUserCreated={fetchUsers} />
 
+      {/* API Code Snippet Modal */}
+      {showApiModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">API Code Snippets - {selectedUser.userId}</h3>
+              <button
+                onClick={() => setShowApiModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Get User Usage */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">Get User Usage</h4>
+                <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto group">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`curl -X GET -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" -H "Content-Type: application/json" ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/users/${selectedUser.userId}`)}
+                    className="absolute top-2 right-2 p-2 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                    title="Copy to clipboard"
+                  >
+                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <pre className="text-sm text-green-400"><code>{`curl -X GET \\
+  -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" \\
+  -H "Content-Type: application/json" \\
+  ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/users/${selectedUser.userId}`}</code></pre>
+                </div>
+              </div>
+
+              {/* Update Token Limit */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">Update Token Limit</h4>
+                <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto group">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`curl -X PUT -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" -H "Content-Type: application/json" -d '{"newLimit": 200000}' ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/users/${selectedUser.userId}/limit`)}
+                    className="absolute top-2 right-2 p-2 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                    title="Copy to clipboard"
+                  >
+                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <pre className="text-sm text-green-400"><code>{`curl -X PUT \\
+  -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"newLimit": 200000}' \\
+  ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/users/${selectedUser.userId}/limit`}</code></pre>
+                </div>
+              </div>
+
+              {/* Invoke Model */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">Invoke Claude Sonnet 4.5</h4>
+                <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto group">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`curl -X POST -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" -H "Content-Type: application/json" -d '{"prompt": "What is AWS Lambda?"}' ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/invoke/${selectedUser.userId}`)}
+                    className="absolute top-2 right-2 p-2 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                    title="Copy to clipboard"
+                  >
+                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <pre className="text-sm text-green-400"><code>{`curl -X POST \\
+  -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"prompt": "What is AWS Lambda?"}' \\
+  ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/invoke/${selectedUser.userId}`}</code></pre>
+                </div>
+              </div>
+
+              {/* Delete User */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">Delete User</h4>
+                <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto group">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`curl -X DELETE -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" -H "Content-Type: application/json" ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/users/${selectedUser.userId}`)}
+                    className="absolute top-2 right-2 p-2 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                    title="Copy to clipboard"
+                  >
+                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <pre className="text-sm text-green-400"><code>{`curl -X DELETE \\
+  -H "X-API-Key: ${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}" \\
+  -H "Content-Type: application/json" \\
+  ${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}/users/${selectedUser.userId}`}</code></pre>
+                </div>
+              </div>
+
+              {/* JavaScript Example */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">JavaScript/TypeScript Example</h4>
+                <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto group">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`const API_URL = '${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}';\nconst API_KEY = '${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}';\n\nconst response = await fetch(\`\${API_URL}/users/${selectedUser.userId}\`, {\n  method: 'GET',\n  headers: {\n    'X-API-Key': API_KEY,\n    'Content-Type': 'application/json'\n  }\n});\nconst data = await response.json();\nconsole.log(data);`)}
+                    className="absolute top-2 right-2 p-2 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                    title="Copy to clipboard"
+                  >
+                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <pre className="text-sm text-green-400"><code>{`const API_URL = '${import.meta.env.VITE_API_URL || 'YOUR_API_URL'}';
+const API_KEY = '${import.meta.env.VITE_API_KEY || 'YOUR_API_KEY'}';
+
+// Get user usage
+const response = await fetch(\`\${API_URL}/users/${selectedUser.userId}\`, {
+  method: 'GET',
+  headers: {
+    'X-API-Key': API_KEY,
+    'Content-Type': 'application/json'
+  }
+});
+const data = await response.json();
+console.log(data);`}</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
@@ -251,7 +393,16 @@ export const UserList: React.FC = () => {
             {sortedUsers.map((user) => (
               <tr key={user.userId} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{user.userId}</div>
+                  <button
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setShowApiModal(true);
+                    }}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    title="Click to view API code snippets"
+                  >
+                    {user.userId}
+                  </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <div className="text-sm font-mono text-gray-900">{user.tokenUsage.toLocaleString()}</div>
@@ -316,11 +467,6 @@ export const UserList: React.FC = () => {
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Footer */}
-      <div className="text-center text-xs text-gray-400">
-        Auto-refreshing every 10 seconds
       </div>
     </div>
   );

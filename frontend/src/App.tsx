@@ -117,27 +117,25 @@ function App() {
   const [availableUsers, setAvailableUsers] = useState<string[]>([]);
 
   // Fetch available users on mount
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await listAllUsers();
-        const userIds = data.users.map((user: any) => user.userId);
-        setAvailableUsers(userIds);
-        
-        // Set the first user as default if not already set
-        if (userIds.length > 0 && !currentUserId) {
-          setCurrentUserId(userIds[0]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
+  const fetchUsers = async () => {
+    try {
+      const data = await listAllUsers();
+      const userIds = data.users.map((user: any) => user.userId);
+      setAvailableUsers(userIds);
+      
+      // Set the first user as default if not already set
+      if (userIds.length > 0 && !currentUserId) {
+        setCurrentUserId(userIds[0]);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    }
+  };
 
+  useEffect(() => {
+    // Fetch users only on initial mount
     fetchUsers();
-    // Refresh user list every 30 seconds
-    const interval = setInterval(fetchUsers, 30000);
-    return () => clearInterval(interval);
-  }, [currentUserId]);
+  }, []);
 
   return (
     <Router>
@@ -150,7 +148,7 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Routes>
-            <Route path="/users" element={<UserList />} />
+            <Route path="/users" element={<UserList onUserListChange={fetchUsers} />} />
             {currentUserId ? (
               <>
                 <Route path="/" element={<Dashboard userId={currentUserId} />} />
