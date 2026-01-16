@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_KEY = import.meta.env.VITE_API_KEY || '';
 
 export class ApiError extends Error {
   constructor(
@@ -46,9 +47,14 @@ export async function createUser(
   userId: string,
   tokenLimit: number
 ): Promise<any> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
+
   const response = await fetchWithRetry(`${API_BASE_URL}/users`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ userId, tokenLimit })
   });
 
@@ -56,9 +62,14 @@ export async function createUser(
 }
 
 export async function getUserUsage(userId: string): Promise<any> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
+
   const response = await fetchWithRetry(`${API_BASE_URL}/users/${userId}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
+    headers
   });
 
   return handleResponse(response);
@@ -68,11 +79,16 @@ export async function updateTokenLimit(
   userId: string,
   newLimit: number
 ): Promise<any> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
+
   const response = await fetchWithRetry(
     `${API_BASE_URL}/users/${userId}/limit`,
     {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ newLimit })
     }
   );
@@ -81,9 +97,14 @@ export async function updateTokenLimit(
 }
 
 export async function listAllUsers(): Promise<any> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
+
   const response = await fetchWithRetry(`${API_BASE_URL}/users`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
+    headers
   });
 
   return handleResponse(response);
@@ -93,11 +114,16 @@ export async function invokeModel(
   userId: string,
   prompt: string
 ): Promise<any> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
+
   const response = await fetchWithRetry(
     `${API_BASE_URL}/invoke/${userId}`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ prompt })
     }
   );
@@ -106,11 +132,16 @@ export async function invokeModel(
 }
 
 export async function deleteUser(userId: string): Promise<any> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
+
   const response = await fetchWithRetry(
     `${API_BASE_URL}/users/${userId}`,
     {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' }
+      headers
     }
   );
 

@@ -115,16 +115,66 @@ export const UserList: React.FC = () => {
 
   if (loading && users.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading users...</div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+              <p className="text-sm text-gray-500 mt-1">Monitor all users and their token usage</p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-gray-900">0</div>
+              <div className="text-sm text-gray-500">Total Users</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Create User Form */}
+        <CreateUser onUserCreated={fetchUsers} />
+
+        <div className="flex items-center justify-center h-32">
+          <div className="text-gray-500">Loading users...</div>
+        </div>
       </div>
     );
   }
 
   if (error && users.length === 0) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700">Error: {error}</p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+              <p className="text-sm text-gray-500 mt-1">Monitor all users and their token usage</p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-gray-900">0</div>
+              <div className="text-sm text-gray-500">Total Users</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Create User Form */}
+        <CreateUser onUserCreated={fetchUsers} />
+
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">No Users Found</h3>
+              <p className="mt-1 text-sm text-yellow-700">
+                {error}. Create your first user using the form above.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

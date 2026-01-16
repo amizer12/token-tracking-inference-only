@@ -15,7 +15,7 @@
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && npm test",
     "test:frontend": "cd frontend && npm test",
-    "deploy": "cd backend && npm run deploy:all",
+    "deploy": "bash backend/scripts/deploy-with-api-key.sh",
     "deploy:backend": "cd backend && npm run deploy",
     "dev:frontend": "cd frontend && npm run dev",
     "clean": "rm -rf node_modules frontend/node_modules backend/node_modules frontend/dist backend/dist backend/cdk.out"

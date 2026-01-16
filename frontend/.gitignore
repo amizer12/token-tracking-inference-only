@@ -1,0 +1,21 @@
+# Build output
+dist/
+build/
+
+# Environment files (contains API keys)
+.env.production
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Testing
+coverage/
+
+# Temporary
+.cache/
+*.tmp

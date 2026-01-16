@@ -110,28 +110,67 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'Authorization']
+        allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
       }
+    });
+
+    // Create API Key
+    const apiKey = api.addApiKey('TokenUsageTrackerApiKey', {
+      apiKeyName: 'TokenUsageTrackerKey',
+      description: 'API Key for Token Usage Tracker'
+    });
+
+    // Create Usage Plan
+    const usagePlan = api.addUsagePlan('TokenUsageTrackerUsagePlan', {
+      name: 'TokenUsageTrackerPlan',
+      description: 'Usage plan for Token Usage Tracker API',
+      throttle: {
+        rateLimit: 100,
+        burstLimit: 200
+      },
+      quota: {
+        limit: 10000,
+        period: apigateway.Period.DAY
+      }
+    });
+
+    usagePlan.addApiKey(apiKey);
+    usagePlan.addApiStage({
+      stage: api.deploymentStage
     });
 
     // API Resources and Methods
     const users = api.root.addResource('users');
-    users.addMethod('POST', new apigateway.LambdaIntegration(createUserFn));
-    users.addMethod('GET', new apigateway.LambdaIntegration(listAllUsersFn));
+    users.addMethod('POST', new apigateway.LambdaIntegration(createUserFn), {
+      apiKeyRequired: true
+    });
+    users.addMethod('GET', new apigateway.LambdaIntegration(listAllUsersFn), {
+      apiKeyRequired: true
+    });
 
     const user = users.addResource('{userId}');
-    user.addMethod('GET', new apigateway.LambdaIntegration(getUserUsageFn));
-    user.addMethod('DELETE', new apigateway.LambdaIntegration(deleteUserFn));
+    user.addMethod('GET', new apigateway.LambdaIntegration(getUserUsageFn), {
+      apiKeyRequired: true
+    });
+    user.addMethod('DELETE', new apigateway.LambdaIntegration(deleteUserFn), {
+      apiKeyRequired: true
+    });
 
     const limit = user.addResource('limit');
-    limit.addMethod('PUT', new apigateway.LambdaIntegration(updateTokenLimitFn));
+    limit.addMethod('PUT', new apigateway.LambdaIntegration(updateTokenLimitFn), {
+      apiKeyRequired: true
+    });
 
     const usage = user.addResource('usage');
-    usage.addMethod('POST', new apigateway.LambdaIntegration(recordTokenUsageFn));
+    usage.addMethod('POST', new apigateway.LambdaIntegration(recordTokenUsageFn), {
+      apiKeyRequired: true
+    });
 
     const invoke = api.root.addResource('invoke');
     const invokeUser = invoke.addResource('{userId}');
-    invokeUser.addMethod('POST', new apigateway.LambdaIntegration(invokeModelFn));
+    invokeUser.addMethod('POST', new apigateway.LambdaIntegration(invokeModelFn), {
+      apiKeyRequired: true
+    });
 
     // S3 Bucket for Frontend
     const websiteBucket = new s3.Bucket(this, 'WebsiteBucket', {
@@ -207,6 +246,11 @@ export class TokenUsageTrackerStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'BucketName', {
       value: websiteBucket.bucketName,
       description: 'S3 bucket name for frontend'
+    });
+
+    new cdk.CfnOutput(this, 'ApiKeyId', {
+      value: apiKey.keyId,
+      description: 'API Key ID (use AWS CLI to retrieve the actual key value)'
     });
   }
 }
