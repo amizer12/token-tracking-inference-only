@@ -24,10 +24,16 @@ echo -e "${BLUE}📋 Extracting deployment outputs...${NC}"
 API_URL=$(cat cdk-outputs.json | grep -o '"ApiUrl": "[^"]*' | grep -o '[^"]*$')
 API_KEY_ID=$(cat cdk-outputs.json | grep -o '"ApiKeyId": "[^"]*' | grep -o '[^"]*$')
 CLOUDFRONT_URL=$(cat cdk-outputs.json | grep -o '"WebsiteUrl": "[^"]*' | grep -o '[^"]*$')
+USER_POOL_ID=$(cat cdk-outputs.json | grep -o '"UserPoolId": "[^"]*' | grep -o '[^"]*$')
+USER_POOL_CLIENT_ID=$(cat cdk-outputs.json | grep -o '"UserPoolClientId": "[^"]*' | grep -o '[^"]*$')
+AWS_REGION=$(cat cdk-outputs.json | grep -o '"Region": "[^"]*' | grep -o '[^"]*$')
 
 echo -e "${GREEN}✓ API URL: ${API_URL}${NC}"
 echo -e "${GREEN}✓ API Key ID: ${API_KEY_ID}${NC}"
 echo -e "${GREEN}✓ CloudFront URL: ${CLOUDFRONT_URL}${NC}"
+echo -e "${GREEN}✓ User Pool ID: ${USER_POOL_ID}${NC}"
+echo -e "${GREEN}✓ User Pool Client ID: ${USER_POOL_CLIENT_ID}${NC}"
+echo -e "${GREEN}✓ Region: ${AWS_REGION}${NC}"
 
 # Step 4: Retrieve API Key value
 echo -e "${BLUE}🔑 Retrieving API Key value...${NC}"
@@ -47,6 +53,9 @@ cd ../frontend
 cat > .env.production << EOF
 VITE_API_URL=${API_URL}
 VITE_API_KEY=${API_KEY}
+VITE_USER_POOL_ID=${USER_POOL_ID}
+VITE_USER_POOL_CLIENT_ID=${USER_POOL_CLIENT_ID}
+VITE_AWS_REGION=${AWS_REGION}
 EOF
 
 echo -e "${GREEN}✓ Frontend .env.production updated${NC}"
@@ -79,8 +88,10 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${GREEN}🌐 Application URL:${NC} ${CLOUDFRONT_URL}"
 echo -e "${GREEN}🔗 API Gateway URL:${NC} ${API_URL}"
 echo -e "${GREEN}🔑 API Key:${NC} ${API_KEY}"
+echo -e "${GREEN}👤 User Pool ID:${NC} ${USER_POOL_ID}"
+echo -e "${GREEN}📱 User Pool Client ID:${NC} ${USER_POOL_CLIENT_ID}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "${YELLOW}📝 Note: API key has been bundled into the deployed frontend${NC}"
+echo -e "${YELLOW}📝 Note: API key and Cognito config have been bundled into the deployed frontend${NC}"
 echo -e "${YELLOW}🔒 Security: .env.production has been removed from local filesystem${NC}"
 echo ""

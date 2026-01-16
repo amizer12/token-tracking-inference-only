@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Amplify } from 'aws-amplify';
+import { signOut } from 'aws-amplify/auth';
 import { Dashboard } from './components/Dashboard';
 import { UserList } from './components/UserList';
 import { ModelInteraction } from './components/ModelInteraction';
+import { Auth } from './components/Auth';
 import { listAllUsers } from './utils/api';
+import { awsConfig } from './aws-config';
+
+// Configure Amplify
+Amplify.configure(awsConfig);
 
 interface NavigationProps {
   currentUserId: string;
@@ -105,6 +112,23 @@ function Navigation({ currentUserId, onUserChange, availableUsers }: NavigationP
                 <span className="text-sm font-medium text-yellow-800">No Users</span>
               </div>
             )}
+            
+            <button
+              onClick={async () => {
+                try {
+                  await signOut();
+                } catch (error) {
+                  console.error('Error signing out:', error);
+                }
+              }}
+              className="ml-3 flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Sign out"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
@@ -138,61 +162,63 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation 
-          currentUserId={currentUserId} 
-          onUserChange={setCurrentUserId}
-          availableUsers={availableUsers}
-        />
+    <Auth>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navigation 
+            currentUserId={currentUserId} 
+            onUserChange={setCurrentUserId}
+            availableUsers={availableUsers}
+          />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Routes>
-            <Route path="/users" element={<UserList onUserListChange={fetchUsers} />} />
-            {currentUserId ? (
-              <>
-                <Route path="/" element={<Dashboard userId={currentUserId} />} />
-                <Route path="/interact" element={<ModelInteraction userId={currentUserId} />} />
-              </>
-            ) : (
-              <Route path="*" element={
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">No Users Available</h3>
-                      <div className="mt-2 text-sm text-blue-700">
-                        <p>Please create a user first by navigating to the <strong>Users</strong> page.</p>
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Routes>
+              <Route path="/users" element={<UserList onUserListChange={fetchUsers} />} />
+              {currentUserId ? (
+                <>
+                  <Route path="/" element={<Dashboard userId={currentUserId} />} />
+                  <Route path="/interact" element={<ModelInteraction userId={currentUserId} />} />
+                </>
+              ) : (
+                <Route path="*" element={
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                       </div>
-                      <div className="mt-4">
-                        <Link 
-                          to="/users" 
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          Go to Users Page
-                        </Link>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">No Users Available</h3>
+                        <div className="mt-2 text-sm text-blue-700">
+                          <p>Please create a user first by navigating to the <strong>Users</strong> page.</p>
+                        </div>
+                        <div className="mt-4">
+                          <Link 
+                            to="/users" 
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            Go to Users Page
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              } />
-            )}
-          </Routes>
-        </main>
+                } />
+              )}
+            </Routes>
+          </main>
 
-        <footer className="border-t border-gray-200 mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p className="text-center text-sm text-gray-500">
-              Token Usage Tracker • Built with React, TypeScript, and Tailwind CSS
-            </p>
-          </div>
-        </footer>
-      </div>
-    </Router>
+          <footer className="border-t border-gray-200 mt-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <p className="text-center text-sm text-gray-500">
+                Token Usage Tracker • Built with React, TypeScript, and Tailwind CSS
+              </p>
+            </div>
+          </footer>
+        </div>
+      </Router>
+    </Auth>
   );
 }
 

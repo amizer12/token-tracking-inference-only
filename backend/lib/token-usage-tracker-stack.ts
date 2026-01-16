@@ -7,12 +7,51 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
 export class TokenUsageTrackerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // Cognito User Pool
+    const userPool = new cognito.UserPool(this, 'TokenUsageTrackerUserPool', {
+      userPoolName: 'TokenUsageTrackerUsers',
+      selfSignUpEnabled: true,
+      signInAliases: {
+        email: true,
+        username: true
+      },
+      autoVerify: {
+        email: true
+      },
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: true
+        }
+      },
+      passwordPolicy: {
+        minLength: 8,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: false
+      },
+      accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+
+    // Cognito User Pool Client
+    const userPoolClient = userPool.addClient('TokenUsageTrackerWebClient', {
+      userPoolClientName: 'TokenUsageTrackerWeb',
+      authFlows: {
+        userPassword: true,
+        userSrp: true
+      },
+      preventUserExistenceErrors: true
+    });
 
     // DynamoDB Table
     const tokenUsageTable = new dynamodb.Table(this, 'TokenUsageTable', {
@@ -251,6 +290,21 @@ export class TokenUsageTrackerStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ApiKeyId', {
       value: apiKey.keyId,
       description: 'API Key ID (use AWS CLI to retrieve the actual key value)'
+    });
+
+    new cdk.CfnOutput(this, 'UserPoolId', {
+      value: userPool.userPoolId,
+      description: 'Cognito User Pool ID'
+    });
+
+    new cdk.CfnOutput(this, 'UserPoolClientId', {
+      value: userPoolClient.userPoolClientId,
+      description: 'Cognito User Pool Client ID'
+    });
+
+    new cdk.CfnOutput(this, 'Region', {
+      value: this.region,
+      description: 'AWS Region'
     });
   }
 }
