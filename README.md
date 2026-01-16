@@ -10,6 +10,11 @@ This system provides real-time monitoring and management of token consumption fo
 
 ## Features
 
+- **Cognito Authentication**: Secure user authentication with AWS Cognito User Pools
+  - Email/password sign-up and sign-in
+  - Email verification for new accounts
+  - Password reset functionality
+  - Session management with automatic token refresh
 - **Real-time Token Tracking**: Monitor Claude Sonnet 4.5 token consumption with 5-second auto-refresh
 - **Cost Calculation**: Automatic inference cost tracking based on AWS Bedrock pricing
   - Input tokens: $0.003 per 1,000 tokens
@@ -20,7 +25,7 @@ This system provides real-time monitoring and management of token consumption fo
 - **Atomic Operations**: DynamoDB atomic increments prevent race conditions
 - **Serverless Architecture**: Auto-scaling with pay-per-use pricing
 - **Global CDN**: CloudFront distribution for fast worldwide access
-- **Secure**: HTTPS/TLS encryption, private S3 buckets, IAM least-privilege
+- **Secure**: HTTPS/TLS encryption, private S3 buckets, IAM least-privilege, Cognito authentication
 
 
 ## Architecture
@@ -181,12 +186,35 @@ This system provides real-time monitoring and management of token consumption fo
 
 ## AWS Services Integration
 
+- **Cognito**: User authentication and authorization with User Pools
 - **CloudFront**: Global CDN for frontend delivery with HTTPS
 - **S3**: Static website hosting with Origin Access Control
 - **API Gateway**: REST API with CORS support and API key authentication
 - **Lambda**: 7 serverless functions for business logic
 - **DynamoDB**: NoSQL database with on-demand billing and atomic operations
 - **Bedrock**: Claude Sonnet 4.5 model inference
+
+## Authentication
+
+### Cognito User Authentication
+
+The application uses AWS Cognito User Pools for secure user authentication. Users must sign up and verify their email before accessing the application.
+
+**Authentication Flow:**
+1. **Sign Up**: New users create an account with email and password
+2. **Email Verification**: Users receive a verification code via email
+3. **Sign In**: Authenticated users receive JWT tokens (ID token, access token, refresh token)
+4. **Session Management**: Tokens are automatically refreshed to maintain user sessions
+5. **Sign Out**: Users can securely sign out, invalidating their session
+
+**Password Requirements:**
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- At least one special character
+
+The frontend automatically handles authentication state and redirects unauthenticated users to the sign-in page.
 
 ## API Key Management
 
@@ -388,21 +416,31 @@ Once deployment is complete:
    - Open the CloudFront URL provided in the deployment output
    - Example: `https://xxxxx.cloudfront.net`
 
-2. **Create Your First User**
+2. **Sign Up for an Account**
+   - Click **Sign Up** on the authentication page
+   - Enter your email and create a password (must meet requirements)
+   - Check your email for the verification code
+   - Enter the verification code to activate your account
+
+3. **Sign In**
+   - Use your email and password to sign in
+   - Your session will be maintained automatically
+
+4. **Create Your First User**
    - Click on the **Users** tab in the navigation
    - Fill in the form:
      - **User ID**: A unique identifier (e.g., "john-doe")
      - **Token Limit**: Maximum tokens allowed (e.g., 100000)
    - Click **Create User**
 
-3. **Test Model Interaction**
+5. **Test Model Interaction**
    - Navigate to **Model Interaction** tab
    - The user you just created will be automatically selected
    - Enter a prompt (e.g., "What is AWS Lambda?")
    - Click **Submit Prompt**
    - View the response and cost breakdown
 
-4. **Monitor Usage**
+6. **Monitor Usage**
    - Go to **Dashboard** to see real-time token usage
    - Check **Users** page to see all users and their costs
    - Data auto-refreshes every 5-10 seconds
@@ -410,6 +448,7 @@ Once deployment is complete:
 ## 📊 Understanding Costs
 
 ### AWS Infrastructure Costs (Monthly)
+- **Cognito**: Free for first 50,000 MAUs (Monthly Active Users)
 - **CloudFront**: ~$1-3 (1TB free tier)
 - **S3**: ~$0.50 (25GB free tier)
 - **API Gateway**: ~$3.50/million requests (1M free tier)
