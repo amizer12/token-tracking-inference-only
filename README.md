@@ -23,14 +23,8 @@ This system provides real-time monitoring and management of token consumption fo
 ## Features
 
 - **Cognito Authentication**: Secure user authentication with AWS Cognito User Pools
-  - Email/password sign-up and sign-in
-  - Email verification for new accounts
-  - Password reset functionality
-  - Session management with automatic token refresh
 - **Real-time Token Tracking**: Monitor Claude Sonnet 4.5 token consumption with 5-second auto-refresh
 - **Cost Calculation**: Automatic inference cost tracking based on AWS Bedrock pricing
-  - Input tokens: $0.003 per 1,000 tokens
-  - Output tokens: $0.015 per 1,000 tokens
 - **User Management**: Create, update, delete users with customizable token limits
 - **Interactive Model Interface**: Direct interaction with Claude Sonnet 4.5 with detailed cost breakdown
 - **Administrative Dashboard**: Real-time usage analytics and reporting
@@ -39,7 +33,6 @@ This system provides real-time monitoring and management of token consumption fo
 - **Global CDN**: CloudFront distribution for fast worldwide access
 - **Secure**: HTTPS/TLS encryption, private S3 buckets, IAM least-privilege, Cognito authentication
 - **Modern UI**: Built with React 18, Tailwind CSS 4.0, and HeroUI components for a fast, responsive interface
-
 
 ## Architecture
 
@@ -193,81 +186,6 @@ This system provides real-time monitoring and management of token consumption fo
 }
 ```
 
-**Pricing** (Claude Sonnet 4.5):
-- Input tokens: $0.003 per 1,000 tokens
-- Output tokens: $0.015 per 1,000 tokens
-
-## AWS Services Integration
-
-- **Cognito**: User authentication and authorization with User Pools
-- **CloudFront**: Global CDN for frontend delivery with HTTPS
-- **S3**: Static website hosting with Origin Access Control
-- **API Gateway**: REST API with CORS support and API key authentication
-- **Lambda**: 7 serverless functions for business logic
-- **DynamoDB**: NoSQL database with on-demand billing and atomic operations
-- **Bedrock**: Claude Sonnet 4.5 model inference
-
-## Authentication
-
-### Cognito User Authentication
-
-The application uses AWS Cognito User Pools for secure user authentication. Users must sign up and verify their email before accessing the application.
-
-**Authentication Flow:**
-1. **Sign Up**: New users create an account with email and password
-2. **Email Verification**: Users receive a verification code via email
-3. **Sign In**: Authenticated users receive JWT tokens (ID token, access token, refresh token)
-4. **Session Management**: Tokens are automatically refreshed to maintain user sessions
-5. **Sign Out**: Users can securely sign out, invalidating their session
-
-**Password Requirements:**
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- At least one special character
-
-The frontend automatically handles authentication state and redirects unauthenticated users to the sign-in page.
-
-## API Key Management
-
-The API is secured with API key authentication. All requests must include the `X-API-Key` header.
-
-### Retrieving Your API Key
-
-After deployment, retrieve your API key:
-
-```bash
-# Get API Key ID from stack outputs
-API_KEY_ID=$(aws cloudformation describe-stacks \
-  --stack-name TokenUsageTrackerStack \
-  --query 'Stacks[0].Outputs[?OutputKey==`ApiKeyId`].OutputValue' \
-  --output text)
-
-# Get the actual API key value
-aws apigateway get-api-key \
-  --api-key $API_KEY_ID \
-  --include-value \
-  --query 'value' \
-  --output text
-```
-
-### Rate Limits
-
-- **Rate Limit**: 100 requests/second
-- **Burst Limit**: 200 requests
-- **Daily Quota**: 10,000 requests
-
-### Using the API Key
-
-The frontend automatically includes the API key from the `.env.production` file. For direct API access:
-
-```bash
-curl -H "X-API-Key: your-api-key-here" \
-     -H "Content-Type: application/json" \
-     https://your-api-url/prod/users
-```
-
 ## ✨ Quick Start
 
 ### Prerequisites
@@ -276,24 +194,6 @@ curl -H "X-API-Key: your-api-key-here" \
 - AWS CLI configured with credentials (`aws configure`)
 - AWS CDK CLI installed (`npm install -g aws-cdk`)
 - Sufficient AWS permissions (Lambda, API Gateway, DynamoDB, S3, CloudFront, Bedrock)
-
-### Technology Stack
-
-**Frontend:**
-- React 18.3
-- TypeScript 5.7
-- Tailwind CSS 4.0 (with @tailwindcss/vite plugin)
-- HeroUI 2.6 (React component library)
-- Vite 6.0 (build tool)
-- AWS Amplify 6.15 (authentication)
-
-**Backend:**
-- AWS CDK (Infrastructure as Code)
-- AWS Lambda (Node.js 18)
-- API Gateway (REST API)
-- DynamoDB (NoSQL database)
-- Amazon Bedrock (Claude Sonnet 4.5)
-- AWS Cognito (user authentication)
 
 ### 🚀 Automated Deployment (Recommended)
 
@@ -311,14 +211,6 @@ npm run install:all
 npm run deploy
 ```
 
-**That's it!** The deployment script will:
-- ✅ Build the backend TypeScript code
-- ✅ Deploy all AWS infrastructure (Lambda, API Gateway, DynamoDB, S3, CloudFront)
-- ✅ Create and retrieve the API key automatically
-- ✅ Configure the frontend with the API key
-- ✅ Rebuild and redeploy the frontend with API key embedded
-- ✅ Display your application URL and API key
-
 **Expected output:**
 ```
 ✅ Deployment Complete!
@@ -332,6 +224,9 @@ npm run deploy
 📝 Note: API key has been bundled into the deployed frontend
 🔒 Security: .env.production has been removed from local filesystem
 ```
+
+ Open the CloudFront URL provided in the deployment output, create an account, login and access the dashbpard !
+
 
 ### 🔧 Manual Deployment (Advanced)
 
@@ -412,101 +307,6 @@ npx cdk destroy
 # If DynamoDB table persists (has retention policy):
 aws dynamodb delete-table --table-name TokenUsageTable
 ```
-
-
-
-## Project Structure
-
-```
-token-usage-tracker/
-├── frontend/          # React web application
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── types/         # TypeScript interfaces
-│   │   └── utils/         # Utility functions
-│   ├── .env.production    # Production config (auto-generated)
-│   └── package.json
-├── backend/           # AWS Lambda functions
-│   ├── src/
-│   │   ├── lambda/        # Lambda function handlers
-│   │   ├── utils/         # Shared utilities
-│   │   └── types/         # TypeScript interfaces
-│   ├── lib/               # CDK infrastructure code
-│   ├── scripts/
-│   │   └── deploy-with-api-key.sh  # Automated deployment
-│   └── package.json
-├── DEPLOYMENT_GUIDE.md    # Detailed deployment docs
-└── package.json           # Root package.json
-```
-
-## 🎯 First Steps After Deployment
-
-Once deployment is complete:
-
-1. **Access Your Application**
-   - Open the CloudFront URL provided in the deployment output
-   - Example: `https://xxxxx.cloudfront.net`
-
-2. **Sign Up for an Account**
-   - Click **Sign Up** on the authentication page
-   - Enter your email and create a password (must meet requirements)
-   - Check your email for the verification code
-   - Enter the verification code to activate your account
-
-3. **Sign In**
-   - Use your email and password to sign in
-   - Your session will be maintained automatically
-
-4. **Create Your First User**
-   - Click on the **Users** tab in the navigation
-   - Fill in the form:
-     - **User ID**: A unique identifier (e.g., "john-doe")
-     - **Token Limit**: Maximum tokens allowed (e.g., 100000)
-   - Click **Create User**
-
-5. **Test Model Interaction**
-   - Navigate to **Model Interaction** tab
-   - The user you just created will be automatically selected
-   - Enter a prompt (e.g., "What is AWS Lambda?")
-   - Click **Submit Prompt**
-   - View the response and cost breakdown
-
-6. **Monitor Usage**
-   - Go to **Dashboard** to see real-time token usage
-   - Check **Users** page to see all users and their costs
-   - Data auto-refreshes every 5-10 seconds
-
-## 📊 Understanding Costs
-
-### AWS Infrastructure Costs (Monthly)
-- **Cognito**: Free for first 50,000 MAUs (Monthly Active Users)
-- **CloudFront**: ~$1-3 (1TB free tier)
-- **S3**: ~$0.50 (25GB free tier)
-- **API Gateway**: ~$3.50/million requests (1M free tier)
-- **Lambda**: ~$0.20/million requests (1M free tier)
-- **DynamoDB**: ~$1-3 (25GB free tier)
-
-**Estimated Total**: $5-10/month (after free tier)
-
-### Bedrock Inference Costs
-- **Input Tokens**: $0.003 per 1,000 tokens
-- **Output Tokens**: $0.015 per 1,000 tokens
-
-**Example**: A conversation with 1,000 input tokens and 500 output tokens costs:
-- Input: (1,000 / 1,000) × $0.003 = $0.003
-- Output: (500 / 1,000) × $0.015 = $0.0075
-- **Total**: $0.0105 (~1 cent)
-
-The application tracks these costs automatically for each user!
-
-### Key Features
-
-- **Real-time Tracking**: Token usage updates within seconds
-- **Atomic Operations**: DynamoDB atomic increments prevent race conditions
-- **Error Handling**: Comprehensive error handling at all layers
-- **Scalability**: Serverless architecture scales automatically
-- **Cost Optimization**: Pay-per-request billing for DynamoDB and Lambda
-
 ## License
 
 MIT
