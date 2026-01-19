@@ -2,11 +2,23 @@
 
 A real-time token usage tracking system for monitoring and managing Claude Sonnet 4.5 token consumption.
 
-DISCLAIMER: This is NOT a production code, but a demo - use at your own risk
+DISCLAIMER: This is NOT a production code- use at your own risk
 
 ## Overview
 
 This system provides real-time monitoring and management of token consumption for users interacting with Claude Sonnet 4.5. It consists of a React-based web application, serverless API backend using AWS Lambda, and DynamoDB for data persistence.
+
+<div align="center">
+  <img src="./docs/1.png" alt="Authentication" width="900">
+  <p><em>Dashboard</em></p>
+</div>
+
+<div align="center">
+  <img src="./docs/3.png" alt="User Management" width="400">
+    <img src="./docs/4.png" alt="Model Interaction" width="400">
+  <img src="./docs/5.png" alt="Usage Analytics" width="400">
+  <p><em>| Model Interaction | Usage Analytic | API Syntax code|</em></p>
+</div>
 
 ## Features
 
