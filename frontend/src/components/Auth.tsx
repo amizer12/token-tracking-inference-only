@@ -8,6 +8,7 @@ interface AuthProps {
 export const Auth: React.FC<AuthProps> = ({ children }) => {
   return (
     <Authenticator
+      loginMechanisms={['email']}
       signUpAttributes={['email']}
       formFields={{
         signUp: {
@@ -28,6 +29,13 @@ export const Auth: React.FC<AuthProps> = ({ children }) => {
             placeholder: 'Confirm your password',
             isRequired: true,
             label: 'Confirm Password'
+          }
+        },
+        signIn: {
+          username: {
+            placeholder: 'Enter your email',
+            isRequired: true,
+            label: 'Email'
           }
         }
       }}

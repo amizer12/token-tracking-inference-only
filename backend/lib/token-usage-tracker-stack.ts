@@ -21,7 +21,7 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       selfSignUpEnabled: true,
       signInAliases: {
         email: true,
-        username: true
+        username: false
       },
       autoVerify: {
         email: true
@@ -61,8 +61,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
         type: dynamodb.AttributeType.STRING
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      pointInTimeRecovery: true
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      }
     });
 
     // Common Lambda environment variables
@@ -76,7 +78,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/createUser.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     const getUserUsageFn = new lambda.Function(this, 'GetUserUsageFunction', {
@@ -84,7 +89,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/getUserUsage.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     const updateTokenLimitFn = new lambda.Function(this, 'UpdateTokenLimitFunction', {
@@ -92,7 +100,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/updateTokenLimit.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     const recordTokenUsageFn = new lambda.Function(this, 'RecordTokenUsageFunction', {
@@ -100,7 +111,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/recordTokenUsage.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     const listAllUsersFn = new lambda.Function(this, 'ListAllUsersFunction', {
@@ -108,7 +122,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/listAllUsers.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     const invokeModelFn = new lambda.Function(this, 'InvokeModelFunction', {
@@ -116,7 +133,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/invokeModel.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(60)
+      timeout: cdk.Duration.seconds(60),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     const deleteUserFn = new lambda.Function(this, 'DeleteUserFunction', {
@@ -124,7 +144,10 @@ export class TokenUsageTrackerStack extends cdk.Stack {
       handler: 'lambda/deleteUser.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: lambdaEnvironment,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      currentVersionOptions: {
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
     });
 
     // Grant DynamoDB permissions

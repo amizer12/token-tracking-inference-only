@@ -26,6 +26,7 @@ This system provides real-time monitoring and management of token consumption fo
 - **Serverless Architecture**: Auto-scaling with pay-per-use pricing
 - **Global CDN**: CloudFront distribution for fast worldwide access
 - **Secure**: HTTPS/TLS encryption, private S3 buckets, IAM least-privilege, Cognito authentication
+- **Modern UI**: Built with React 18, Tailwind CSS 4.0, and HeroUI components for a fast, responsive interface
 
 
 ## Architecture
@@ -263,6 +264,24 @@ curl -H "X-API-Key: your-api-key-here" \
 - AWS CLI configured with credentials (`aws configure`)
 - AWS CDK CLI installed (`npm install -g aws-cdk`)
 - Sufficient AWS permissions (Lambda, API Gateway, DynamoDB, S3, CloudFront, Bedrock)
+
+### Technology Stack
+
+**Frontend:**
+- React 18.3
+- TypeScript 5.7
+- Tailwind CSS 4.0 (with @tailwindcss/vite plugin)
+- HeroUI 2.6 (React component library)
+- Vite 6.0 (build tool)
+- AWS Amplify 6.15 (authentication)
+
+**Backend:**
+- AWS CDK (Infrastructure as Code)
+- AWS Lambda (Node.js 18)
+- API Gateway (REST API)
+- DynamoDB (NoSQL database)
+- Amazon Bedrock (Claude Sonnet 4.5)
+- AWS Cognito (user authentication)
 
 ### 🚀 Automated Deployment (Recommended)
 
